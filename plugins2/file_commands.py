@@ -282,6 +282,17 @@ async def start_file_delivery(client, message):
             pass
 
         if len(message.command) != 2:
+            # Plain /start — show welcome message
+            main_bot = temp.U_NAME or "the main bot"
+            await message.reply_text(
+                f"<b>👋 ʜᴇʏ {message.from_user.mention}!</b>\n\n"
+                f"<b>ɪ ᴀᴍ ᴛʜᴇ ꜰɪʟᴇ ᴅᴇʟɪᴠᴇʀʏ ʙᴏᴛ 🤖</b>\n\n"
+                f"<b>ɪ ᴅᴇʟɪᴠᴇʀ ꜰɪʟᴇs ᴅɪʀᴇᴄᴛʟʏ ᴛᴏ ʏᴏᴜ ꜰʀᴏᴍ ᴛʜᴇ ᴍᴀɪɴ ʙᴏᴛ.\n\n"
+                f"➮ ᴛᴏ ɢᴇᴛ ꜰɪʟᴇs, ꜱᴇᴀʀᴄʜ ɪɴ ᴏᴜʀ ɢʀᴏᴜᴘ ᴀɴᴅ ᴄʟɪᴄᴋ ᴛʜᴇ ɢᴇᴛ ꜰɪʟᴇ ʙᴜᴛᴛᴏɴ.</b>\n\n"
+                f"<b><blockquote>➮ ᴍᴀɪɴ ʙᴏᴛ : @{main_bot}</blockquote></b>",
+                parse_mode=enums.ParseMode.HTML,
+                disable_web_page_preview=True,
+            )
             return
 
         payload = message.command[1]
