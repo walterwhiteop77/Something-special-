@@ -42,7 +42,7 @@ class Media(Document):
     mime_type = fields.StrField(allow_none=True)
     caption = fields.StrField(allow_none=True)
     cover = fields.StrField(allow_none=True)
-    message_id = fields.IntField(allow_none=True)   # BIN_CHANNEL msg id — used by Bot2
+    message_id = fields.IntField(allow_none=True)
 
     class Meta:
         indexes = ("$file_name",)
@@ -59,7 +59,7 @@ class Media2(Document):
     mime_type = fields.StrField(allow_none=True)
     caption = fields.StrField(allow_none=True)
     cover = fields.StrField(allow_none=True)
-    message_id = fields.IntField(allow_none=True)   # BIN_CHANNEL msg id — used by Bot2
+    message_id = fields.IntField(allow_none=True)
 
 
     class Meta:
@@ -90,6 +90,22 @@ async def check_db_size(db):
         return 0
 
 
+async def _patch_message_id(col, file_id: str, message_id: int):
+    """Backfill message_id on an existing record that has no message_id yet.
+    Handles both null values AND documents where the field was never stored."""
+    try:
+        await col.update_one(
+            {"_id": file_id, "$or": [
+                {"message_id": {"$exists": False}},
+                {"message_id": None},
+                {"message_id": 0},
+            ]},
+            {"$set": {"message_id": message_id}},
+        )
+    except Exception:
+        pass
+
+
 async def save_file(media):
     """Save file in database, with detailed logging."""
     file_id, file_ref = unpack_new_file_id(media.file_id)
@@ -97,12 +113,15 @@ async def save_file(media):
         r"[_\-\.#+$%^&*()!~`,;:\"'?/<>\[\]{}=|\\]", " ", str(media.file_name)
     )
     file_name = re.sub(r"\s+", " ", file_name).strip()
+    new_msg_id = getattr(media, 'message_id', None)
     saveMedia = Media
     target_db = "Primary"
     if MULTIPLE_DB:
         try:
             exists = await Media.count_documents({"file_id": file_id}, limit=1)
             if exists:
+                if new_msg_id:
+                    await _patch_message_id(Media.collection, file_id, new_msg_id)
                 logger.info(f"[SKIP] '{file_name}' already in Primary DB.")
                 return False, 0
             primary_db_size = await check_db_size(db)
@@ -125,7 +144,7 @@ async def save_file(media):
             mime_type=media.mime_type,
             caption=(media.caption.html if media.caption and INDEX_CAPTION else None),
             cover=cover_to_use if COVERX else None,
-            message_id=getattr(media, 'message_id', None),
+            message_id=new_msg_id,
         )
     except Exception as e:
         logger.exception(f"[ERROR] '{file_name}' → {e}")
@@ -133,6 +152,8 @@ async def save_file(media):
     try:
         await record.commit()
     except DuplicateKeyError:
+        if new_msg_id:
+            await _patch_message_id(saveMedia.collection, file_id, new_msg_id)
         logger.info(
             f"[SKIP] DuplicateKey: '{file_name}' already exists in {target_db} DB."
         )
@@ -142,7 +163,6 @@ async def save_file(media):
             f"[ERROR] Failed commit of '{file_name}' to {target_db} DB.", exc_info=e
         )
         return False, 3
-    #logger.info(f"[SUCCESS] '{file_name}' saved to {target_db} DB.")
     return True, 1
 
 async def get_search_results(chat_id, query, file_type=None, max_results=None, offset=0, filter=False):
