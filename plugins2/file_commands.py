@@ -103,17 +103,26 @@ async def _send_single_file(client, user_id: int, file_id: str, grp_id: int, mes
         fi, cover, cap = None, None, ''
 
     btn = await stream_buttons(user_id, file_id)
-    msg_id = getattr(fi, 'message_id', None) if fi else None
-    if msg_id:
-        msg = await client.copy_message(
-            chat_id=user_id,
-            from_chat_id=BIN_CHANNEL,
-            message_id=msg_id,
-            caption=cap,
-            parse_mode=enums.ParseMode.HTML,
-            protect_content=settings.get('file_secure', PROTECT_CONTENT),
-            reply_markup=InlineKeyboardMarkup(btn),
-        )
+    stored_msg_id = getattr(fi, 'message_id', None) if fi else None
+    if stored_msg_id:
+        try:
+            msg = await client.copy_message(
+                chat_id=user_id,
+                from_chat_id=BIN_CHANNEL,
+                message_id=stored_msg_id,
+                caption=cap,
+                protect_content=settings.get('file_secure', PROTECT_CONTENT),
+                reply_markup=InlineKeyboardMarkup(btn),
+            )
+        except Exception:
+            msg = await client.send_cached_media(
+                chat_id=user_id,
+                file_id=file_id,
+                cover=cover,
+                caption=cap,
+                protect_content=settings.get('file_secure', PROTECT_CONTENT),
+                reply_markup=InlineKeyboardMarkup(btn),
+            )
     else:
         msg = await client.send_cached_media(
             chat_id=user_id,
@@ -156,17 +165,26 @@ async def _send_all_files(client, user_id: int, file_ids: list, grp_id: int, mes
         if cap is None:
             cap = title or ''
         btn = await stream_buttons(user_id, fid)
-        fmsg_id = getattr(fi, 'message_id', None) if fi else None
-        if fmsg_id:
-            msg = await client.copy_message(
-                chat_id=user_id,
-                from_chat_id=BIN_CHANNEL,
-                message_id=fmsg_id,
-                caption=cap,
-                parse_mode=enums.ParseMode.HTML,
-                protect_content=settings.get('file_secure', PROTECT_CONTENT),
-                reply_markup=InlineKeyboardMarkup(btn),
-            )
+        stored_msg_id = getattr(fi, 'message_id', None) if fi else None
+        if stored_msg_id:
+            try:
+                msg = await client.copy_message(
+                    chat_id=user_id,
+                    from_chat_id=BIN_CHANNEL,
+                    message_id=stored_msg_id,
+                    caption=cap,
+                    protect_content=settings.get('file_secure', PROTECT_CONTENT),
+                    reply_markup=InlineKeyboardMarkup(btn),
+                )
+            except Exception:
+                msg = await client.send_cached_media(
+                    chat_id=user_id,
+                    cover=cover,
+                    file_id=fid,
+                    caption=cap,
+                    protect_content=settings.get('file_secure', PROTECT_CONTENT),
+                    reply_markup=InlineKeyboardMarkup(btn),
+                )
         else:
             msg = await client.send_cached_media(
                 chat_id=user_id,
@@ -306,17 +324,6 @@ async def start_file_delivery(client, message):
             pass
 
         if len(message.command) != 2:
-            # Plain /start — show welcome message
-            main_bot = temp.U_NAME or "the main bot"
-            await message.reply_text(
-                f"<b>👋 ʜᴇʏ {message.from_user.mention}!</b>\n\n"
-                f"<b>ɪ ᴀᴍ ᴛʜᴇ ꜰɪʟᴇ ᴅᴇʟɪᴠᴇʀʏ ʙᴏᴛ 🤖</b>\n\n"
-                f"<b>ɪ ᴅᴇʟɪᴠᴇʀ ꜰɪʟᴇs ᴅɪʀᴇᴄᴛʟʏ ᴛᴏ ʏᴏᴜ ꜰʀᴏᴍ ᴛʜᴇ ᴍᴀɪɴ ʙᴏᴛ.\n\n"
-                f"➮ ᴛᴏ ɢᴇᴛ ꜰɪʟᴇs, ꜱᴇᴀʀᴄʜ ɪɴ ᴏᴜʀ ɢʀᴏᴜᴘ ᴀɴᴅ ᴄʟɪᴄᴋ ᴛʜᴇ ɢᴇᴛ ꜰɪʟᴇ ʙᴜᴛᴛᴏɴ.</b>\n\n"
-                f"<b><blockquote>➮ ᴍᴀɪɴ ʙᴏᴛ : @{main_bot}</blockquote></b>",
-                parse_mode=enums.ParseMode.HTML,
-                disable_web_page_preview=True,
-            )
             return
 
         payload = message.command[1]
@@ -371,7 +378,7 @@ async def start_file_delivery(client, message):
                     ),
                 )
             except Exception:
-                pass  # Bot2 may not be in the log channel — skip silently
+                pass
             dlt = await message.reply_photo(
                 photo=(settings.get('verify_img')
                        or 'https://graph.org/file/7478ff3eac37f4329c3d8.jpg'),
