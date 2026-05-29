@@ -382,7 +382,7 @@ async def get_movie_details(query, bulk=False, id=False, file=None):
         "url": movie.url or f"https://www.imdb.com/title/{imdb_id}"
     }
 
-"""
+r"""
 async def old_get_movie_details(query, id=False, file=None):
     try:
         if not id:
