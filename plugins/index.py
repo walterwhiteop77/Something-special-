@@ -195,6 +195,7 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
                             continue
                         media.file_type = message.media.value
                         media.caption = message.caption
+                        media.message_id = message.id   # stored for Bot2 copy_message
                         save_tasks.append(save_file(media))
 
                     except Exception:
