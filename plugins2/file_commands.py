@@ -33,7 +33,7 @@ from info import (
     CUSTOM_FILE_CAPTION, IS_VERIFY, TWO_VERIFY_GAP, THREE_VERIFY_GAP,
     STREAM_MODE, PREMIUM_STREAM_MODE, UPDATE_CHNL_LNK,
     IS_FILE_LIMIT, FILES_LIMIT, COVERX, FSUB_PICS,
-    TUTORIAL, TUTORIAL_2, TUTORIAL_3
+    TUTORIAL, TUTORIAL_2, TUTORIAL_3, BIN_CHANNEL
 )
 from utils import (
     get_settings, is_subscribed, is_req_subscribed,
@@ -103,14 +103,26 @@ async def _send_single_file(client, user_id: int, file_id: str, grp_id: int, mes
         fi, cover, cap = None, None, ''
 
     btn = await stream_buttons(user_id, file_id)
-    msg = await client.send_cached_media(
-        chat_id=user_id,
-        file_id=file_id,
-        cover=cover,
-        caption=cap,
-        protect_content=settings.get('file_secure', PROTECT_CONTENT),
-        reply_markup=InlineKeyboardMarkup(btn),
-    )
+    msg_id = getattr(fi, 'message_id', None) if fi else None
+    if msg_id:
+        msg = await client.copy_message(
+            chat_id=user_id,
+            from_chat_id=BIN_CHANNEL,
+            message_id=msg_id,
+            caption=cap,
+            parse_mode=enums.ParseMode.HTML,
+            protect_content=settings.get('file_secure', PROTECT_CONTENT),
+            reply_markup=InlineKeyboardMarkup(btn),
+        )
+    else:
+        msg = await client.send_cached_media(
+            chat_id=user_id,
+            file_id=file_id,
+            cover=cover,
+            caption=cap,
+            protect_content=settings.get('file_secure', PROTECT_CONTENT),
+            reply_markup=InlineKeyboardMarkup(btn),
+        )
     k = await msg.reply(
         script.DEL_MSG.format(get_time(DELETE_TIME)),
         quote=True, parse_mode=enums.ParseMode.HTML,
@@ -144,14 +156,26 @@ async def _send_all_files(client, user_id: int, file_ids: list, grp_id: int, mes
         if cap is None:
             cap = title or ''
         btn = await stream_buttons(user_id, fid)
-        msg = await client.send_cached_media(
-            chat_id=user_id,
-            cover=cover,
-            file_id=fid,
-            caption=cap,
-            protect_content=settings.get('file_secure', PROTECT_CONTENT),
-            reply_markup=InlineKeyboardMarkup(btn),
-        )
+        fmsg_id = getattr(fi, 'message_id', None) if fi else None
+        if fmsg_id:
+            msg = await client.copy_message(
+                chat_id=user_id,
+                from_chat_id=BIN_CHANNEL,
+                message_id=fmsg_id,
+                caption=cap,
+                parse_mode=enums.ParseMode.HTML,
+                protect_content=settings.get('file_secure', PROTECT_CONTENT),
+                reply_markup=InlineKeyboardMarkup(btn),
+            )
+        else:
+            msg = await client.send_cached_media(
+                chat_id=user_id,
+                cover=cover,
+                file_id=fid,
+                caption=cap,
+                protect_content=settings.get('file_secure', PROTECT_CONTENT),
+                reply_markup=InlineKeyboardMarkup(btn),
+            )
         sent_msgs.append(msg)
     k = await client.send_message(
         chat_id=user_id,
