@@ -85,6 +85,27 @@ def dreamxbotz_plugins_handler(app, plugins_dir: str | Path = "plugins", package
 
 _bot2_instance = None  # Global reference to keep Bot2 alive
 
+
+async def _start_bot2(token: str):
+    """Create, start, and register the file-delivery Bot2."""
+    global _bot2_instance
+    bot2 = Client(
+        name="dreamxbotz_bot2",
+        api_id=API_ID,
+        api_hash=API_HASH,
+        bot_token=token,
+        workers=30,
+        plugins={"root": "plugins2"},
+        sleep_threshold=SLEEP_THRESHOLD,
+        in_memory=True,
+    )
+    await bot2.start()
+    bot2_me = await bot2.get_me()
+    temp.U_NAME2 = '@' + bot2_me.username
+    _bot2_instance = bot2
+    logging.info("Bot2 (@%s) started successfully.", bot2_me.username)
+
+
 async def dreamxbotz_start():
     global _bot2_instance
     print('\n\nInitalizing DreamxBotz')
