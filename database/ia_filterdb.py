@@ -42,6 +42,7 @@ class Media(Document):
     mime_type = fields.StrField(allow_none=True)
     caption = fields.StrField(allow_none=True)
     cover = fields.StrField(allow_none=True)
+    message_id = fields.IntField(allow_none=True)   # BIN_CHANNEL msg id — used by Bot2
 
     class Meta:
         indexes = ("$file_name",)
@@ -58,6 +59,7 @@ class Media2(Document):
     mime_type = fields.StrField(allow_none=True)
     caption = fields.StrField(allow_none=True)
     cover = fields.StrField(allow_none=True)
+    message_id = fields.IntField(allow_none=True)   # BIN_CHANNEL msg id — used by Bot2
 
 
     class Meta:
@@ -123,6 +125,7 @@ async def save_file(media):
             mime_type=media.mime_type,
             caption=(media.caption.html if media.caption and INDEX_CAPTION else None),
             cover=cover_to_use if COVERX else None,
+            message_id=getattr(media, 'message_id', None),
         )
     except Exception as e:
         logger.exception(f"[ERROR] '{file_name}' → {e}")
