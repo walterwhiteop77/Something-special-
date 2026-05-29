@@ -101,7 +101,7 @@ async def _start_bot2(token: str):
     )
     await bot2.start()
     bot2_me = await bot2.get_me()
-    temp.U_NAME2 = '@' + bot2_me.username
+    temp.U_NAME2 = bot2_me.username          # NO @ prefix — matches temp.U_NAME style
     _bot2_instance = bot2
     logging.info("Bot2 (@%s) started successfully.", bot2_me.username)
 
