@@ -105,7 +105,7 @@ async def _start_bot2(token: str):
     _bot2_instance = bot2
     logging.info("Bot2 (@%s) started successfully.", bot2_me.username)
     from plugins2.bin_scanner import run_bin_channel_scan
-    asyncio.create_task(run_bin_channel_scan(bot2))
+    asyncio.create_task(run_bin_channel_scan(dreamxbotz))
 
 
 async def dreamxbotz_start():
