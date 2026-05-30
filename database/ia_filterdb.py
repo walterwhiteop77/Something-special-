@@ -91,8 +91,7 @@ async def check_db_size(db):
 
 
 async def _patch_message_id(col, file_id: str, message_id: int):
-    """Backfill message_id on an existing record that has no message_id yet.
-    Handles both null values AND documents where the field was never stored."""
+    """Backfill message_id on an existing record. Handles missing, null, and zero values."""
     try:
         await col.update_one(
             {"_id": file_id, "$or": [
