@@ -133,6 +133,7 @@ async def dreamxbotz_start():
     me = await dreamxbotz.get_me()
     temp.ME = me.id
     temp.U_NAME = me.username
+    temp.MAIN_BOT = dreamxbotz  # Expose main bot client to Bot2 plugins
     temp.B_NAME = me.first_name
     temp.B_LINK = me.mention
     dreamxbotz.username = '@' + me.username

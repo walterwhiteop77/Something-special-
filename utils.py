@@ -51,6 +51,7 @@ class temp(object):
     MELCOW = {}
     U_NAME = None
     U_NAME2 = None  # Second bot username — used for all file delivery links
+    MAIN_BOT = None  # Main bot client — used by Bot2 as fallback sender
     B_NAME = None
     B_LINK = None
     SETTINGS = {}
