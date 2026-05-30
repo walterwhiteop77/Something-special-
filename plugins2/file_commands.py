@@ -116,6 +116,9 @@ async def _send_single_file(client, user_id: int, file_id: str, grp_id: int, mes
                 reply_markup=InlineKeyboardMarkup(btn),
             )
         except Exception:
+            if not _main:
+                await message.reply_text('<b>⚠️ Bot is still starting up. Please try again in a moment.</b>')
+                return
             msg = await _main.send_cached_media(
                 chat_id=user_id,
                 file_id=file_id,
@@ -125,6 +128,9 @@ async def _send_single_file(client, user_id: int, file_id: str, grp_id: int, mes
                 reply_markup=InlineKeyboardMarkup(btn),
             )
     else:
+        if not _main:
+            await message.reply_text('<b>⚠️ Bot is still starting up. Please try again in a moment.</b>')
+            return
         msg = await _main.send_cached_media(
             chat_id=user_id,
             file_id=file_id,
@@ -179,6 +185,8 @@ async def _send_all_files(client, user_id: int, file_ids: list, grp_id: int, mes
                     reply_markup=InlineKeyboardMarkup(btn),
                 )
             except Exception:
+                if not _main:
+                    continue
                 msg = await _main.send_cached_media(
                     chat_id=user_id,
                     cover=cover,
@@ -188,6 +196,8 @@ async def _send_all_files(client, user_id: int, file_ids: list, grp_id: int, mes
                     reply_markup=InlineKeyboardMarkup(btn),
                 )
         else:
+            if not _main:
+                continue
             msg = await _main.send_cached_media(
                 chat_id=user_id,
                 cover=cover,
