@@ -369,13 +369,16 @@ async def start_file_delivery(client, message):
             _bot2 = temp.U_NAME2 or temp.U_NAME
             get_file_url = f'https://telegram.me/{_bot2}?start=get_{delivery_id}'
 
-            await client.send_message(
-                settings['log'],
-                script.VERIFIED_LOG_TEXT.format(
-                    message.from_user.mention, uid,
-                    datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%d %B %Y'), num
-                ),
-            )
+            try:
+                await client.send_message(
+                    settings['log'],
+                    script.VERIFIED_LOG_TEXT.format(
+                        message.from_user.mention, uid,
+                        datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%d %B %Y'), num
+                    ),
+                )
+            except Exception:
+                pass
             dlt = await message.reply_photo(
                 photo=(settings.get('verify_img')
                        or 'https://graph.org/file/7478ff3eac37f4329c3d8.jpg'),
